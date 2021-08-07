@@ -100,9 +100,9 @@ if __name__ == '__main__':
     # Breast cancer dataset
     data_scaler = StandardScaler()
     target_scaler = PowerTransformer()
-    # target_scaler = StandardScaler()  # PowerTransformer()
-    # data, target = load_boston(return_X_y=True)
-    data, target = fetch_california_housing(return_X_y=True)
+    # target_scaler = StandardScaler()
+    data, target = load_boston(return_X_y=True)
+    # data, target = fetch_california_housing(return_X_y=True)
     input_dim = data.shape[1]
     target = target.reshape(-1, 1)
     data_scaled = data_scaler.fit_transform(data)
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     # raise ValueError('stop')
 
     data_train, data_test, target_train, target_test = \
-        train_test_split(data_scaled, target_scaled, test_size=0.20)
+        train_test_split(data_scaled, target_scaled, test_size=0.10)
 
     # Dataset
     train_dataset = CustomDataset(data_train, target_train)
@@ -141,12 +141,12 @@ if __name__ == '__main__':
         trainer = Trainer(max_epochs=10)  # , gpus=-1)  # For GPUs
         trainer.fit(model=model, val_dataloaders=val_dataloader)
         pred_scaled = model.forward(torch.from_numpy(data_train).float()).detach().numpy()
-        # error = pred_scaled - target_train
+        # error = pred_scaled - target_train  # Scaled
         error = target_scaler.inverse_transform(pred_scaled) - target_scaler.inverse_transform(target_train)
         error_mean = np.mean(error)
-        error_std = error.std()
+        error_std = np.std(error)
         x = np.linspace(- 3 * error_std, 3 * error_std, bin_number)
-        y = [dist_dict[error_name](x_n, 0.0, error.std()) for x_n in x]
+        y = [dist_dict[error_name](x_n, error_mean, error_std) for x_n in x]
         # mse_error = (error**2).mean()
         plt.figure(fig)
         plt.hist(error, density=True, bins=bin_number)
@@ -155,5 +155,4 @@ if __name__ == '__main__':
         # plt.show()
         plt.savefig('images/' + error_name)
         plt.close(fig)
-        raise ValueError()
         print()

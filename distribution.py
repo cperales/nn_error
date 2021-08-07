@@ -2,7 +2,8 @@ import numpy as np
 from scipy.special import gamma
 
 
-def student_distribution(x, mean=0.0, v=1.0):
+def student_distribution(x, mean=0.0, std=1.0):
+    v = 2 / (std - 1)
     return gamma((v + 1) / 2) / (np.sqrt(v * np.pi) * gamma(v / 2)) * (1 + (x - mean)**2 / v)**(- (v + 1) / 2)
 
 
